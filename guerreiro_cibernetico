@@ -1,0 +1,79 @@
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+from guardrails import Guard
+from guardrails.hub import ValidURL
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Configurar a chave da API da OpenAI
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("A chave da API 'OPENAI_API_KEY' não foi encontrada. Verifique o arquivo .env.")
+
+# Inicializar o cliente da OpenAI
+client = OpenAI(api_key=api_key)
+
+# Configurar Guard para usar o validador ValidURL
+guard = Guard().use(ValidURL(on_fail="exception"))
+
+# Histórico da conversa
+conversation_history = [
+    {"role": "system", "content": "Você é um assistente para validação de URLs para investigação de crimes cibernéticos e fraudes digitais."}
+]
+
+def validar_url_via_prompt():
+    """
+    Valida uma URL fornecida pelo usuário via prompt utilizando OpenAI e Guardrails.
+    """
+    try:
+        # Solicitar ao usuário a URL
+        print("\n------- GUERREIRO CIBERNÉTICO -------\n")
+        user_url = input("Por favor, insira uma URL que está sendo investigada para que a OPENAI faça a validação: ")
+        
+        # Adicionar "https://" se necessário
+        if not user_url.startswith("http://") and not user_url.startswith("https://"):
+            user_url = "https://" + user_url
+
+        # Validar a URL usando Guardrails
+        try:
+            validated_url = guard.validate(user_url)
+            print("\nVALIDAÇÃO GUARDRAILS: \n")
+            print(f"A URL '{validated_url}' está no formato correto! \n")
+        except Exception as e:
+            print("\nVALIDAÇÃO GUARDRAILS: \n")
+            print(f"A URL fornecida não está no formato correto: {e} \n")
+            return  # Terminar o processo se a URL for inválida
+
+        # Consultar a OpenAI API sobre a validade da URL
+        # Adicionar a entrada do usuário ao histórico
+        conversation_history.append({"role": "user", "content": user_url})
+        
+        try:
+            # Solicitar uma conclusão do modelo
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=conversation_history
+            )
+            
+            # Extrair a resposta do modelo
+            response = completion.choices[0].message.content
+            
+            # Adicionar a resposta ao histórico
+            conversation_history.append({"role": "assistant", "content": response})
+            print("VERIFICAÇÃO GPT: \n")
+            return response
+        except Exception as e:
+            print("VERIFICAÇÃO GPT: \n")
+            return f"Ocorreu um erro ao interagir com o modelo: {e}"
+    except Exception as e:
+        print(f"Erro: {e}")
+
+response = validar_url_via_prompt()
+
+print(f"GPT: {response} \n\n")
+
+# Executar o script
+if __name__ == "__main__":
+    validar_url_via_prompt()
