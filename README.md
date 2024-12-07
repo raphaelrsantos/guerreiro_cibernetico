@@ -1,4 +1,4 @@
-# guerreiro_cibernetico
+# site_seguro
 Projeto da pós graduação de sistemas e agentes inteligentes da UFG 2024/25
 
 # Passos para execução do script:
