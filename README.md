@@ -4,7 +4,7 @@ Projeto da pós graduação de sistemas e agentes inteligentes da UFG 2024/25
 # Passos para execução do script:
 1. Instalar o python;
 2. Caso não tenha criado, criar/ativar o ambiente virtual (.env);
-3. Pelo terminal do VSCode, instalar o pacote uv: pip instal uv
+3. Pelo terminal do VSCode, instalar o pacote uv: #pip instal uv
 4. Iniciar o pacote uv: uv init
 5. Adicionar o pacote dotenv: uv add python-dotenv
 6. Adiciona o pacote openai: uv add openai
