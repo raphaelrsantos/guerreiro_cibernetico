@@ -1,5 +1,7 @@
 # site_seguro
-Projeto da pós graduação de sistemas e agentes inteligentes da UFG 2024/25
+Projeto para a disciplina de ePrompts, do curso de pós-graduação em sistemas e agentes inteligentes - UFG 2024/25. 
+Trata-se de ferramenta que auxilia na avaliação do nível de risco associado a sites na internet além de de apoio à investigação de crimes cibernéticos e fraudes digitais.
+Desenvolvido em colaboração pelos alunos Guilherme Lemes, Raphael Rodrigues e Thiago Santos.
 
 # Passos para execução do script:
 1. Instalar o python;
