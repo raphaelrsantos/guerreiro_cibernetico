@@ -12,8 +12,8 @@ Projeto da pós graduação de sistemas e agentes inteligentes da UFG 2024/25
 7. Cria uma arquivo .env e nele adiciona a chave API_KEY da openai:
    * Adicionar da seguinte forma: OPENAI_API_KEY="Digite aqui a chave";
 8. Instalar a biblioteca Guardrails:
-   * uv add guardrails-api-client==0.4.0a1
-   * uv add guardrails-ai==0.6.0
+ \n* uv add guardrails-api-client==0.4.0a1
+ \n* uv add guardrails-ai==0.6.0
 9. Configurar o guardrails: guardrails configure
    Enable anonymous metrics reporting? [Y/n]: Y
    Do you wish to use remote inferencing? [Y/n]: n
