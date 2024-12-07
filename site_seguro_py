@@ -1,0 +1,127 @@
+import openai
+from dotenv import load_dotenv
+import os
+import requests
+from guardrails import Guard
+from guardrails.hub import ValidURL, ValidJson
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Configurar a chave da API da OpenAI
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("A chave da API 'OPENAI_API_KEY' não foi encontrada. Verifique o arquivo .env.")
+
+# Inicializar o cliente da OpenAI
+client = openai.OpenAI(api_key=api_key)
+
+# Configurar Guard para usar validadores ValidURL e ValidJson
+url_guard = Guard().use(ValidURL(on_fail="exception"))
+json_guard = Guard().use(ValidJson(on_fail="exception"))
+
+# Histórico da conversa
+conversation_history = [
+    {"role": "system", "content": "Você é um assistente para avaliação do nível de risco associado a sites na internet." 
+     "Também é uma ferramenta de apoio à investigação de crimes cibernéticos e fraudes digitais."}
+]
+
+def limpar_json_formatado(json_text):
+    """
+    Remove caracteres de markdown como ```json e ``` do início e fim do texto.
+    """
+    if json_text.startswith("```json"):
+        json_text = json_text[7:]  # Remove o ```json inicial
+    if json_text.endswith("```"):
+        json_text = json_text[:-3]  # Remove o ``` final
+    return json_text.strip()
+
+def validar_url_e_resumir():
+    """
+    Valida uma URL fornecida pelo usuário, realiza uma chamada HTTP e analisa o conteúdo com GPT.
+    """
+    try:
+        # Solicitar ao usuário a URL
+        print("\n------- GUERREIRO CIBERNÉTICO -------\n")
+        user_url = input("Por favor, insira uma URL que está sendo analisada para que a OPENAI faça a validação: ")
+        
+        # Validar a URL usando Guardrails
+        try:
+            validated_url = url_guard.validate(user_url)
+            print("\n1. VALIDAÇÃO GUARDRAILS: \n")
+            print(f"'{validated_url}' \n\n >> A URL está no formato correto! \n")
+        except Exception as e:
+            print("\n1. VALIDAÇÃO GUARDRAILS: \n")
+            print(f"A URL fornecida não está no formato correto: {e} \n\n")
+            return  # Terminar o processo se a URL for inválida
+
+        # Realizar chamada HTTP para r.jina.ai/<url validada>
+        jina_url = f"https://r.jina.ai/{user_url.replace('https://www.','').replace('https://','')}"
+        try:
+            print('*'*20)
+            print(f"2. Consultando o conteúdo em: {jina_url}")
+            print(f'Aguarde um instante...\n')
+            response = requests.get(jina_url, timeout=10)
+            response.raise_for_status()  # Levantar exceção para erros HTTP
+            page_content = response.text
+        except requests.RequestException as e:
+            print(f"Erro ao realizar a chamada HTTP: {e} \n")
+            return
+
+        # Consultar o GPT para análise do conteúdo
+        prompt = (
+            f"A URL '{user_url}' foi validada e seu conteúdo foi obtido. Por favor, analise o seguinte conteúdo: \n\n"
+            f"<pagina>{page_content}</pagina>\n\n"
+            "Faça um resumo do conteúdo presente entre as tags <pagina> e determine se há evidências de atividade criminosa ou fraudulenta. A saída deve ser um JSON "
+            "que contempla o tipo principal de conteúdo, o risco de ter conteúdo fraudulento (de 1 a 10), se o site tem ou não links suspeitos (sim/não), "
+            "o nível de risco de phishing (de 1 a 10), a presença de conteúdo criminoso (sim/não) e, por fim, uma nota de classificação geral de risco (de 1 a 10, "
+            "sendo 1 pouco suspeito e 10 muito suspeito). "
+            "O JSON final deve ter o seguinte formato: {'tipo de conteudo': 'noticias', 'risco de fraude': '1', 'links suspeitos': 'não', 'risco_pishing': '3'...}"
+        )
+
+        # Adicionar a entrada ao histórico
+        conversation_history.append({"role": "user", "content": prompt})
+        
+        try:
+            # Solicitar uma conclusão do modelo
+            completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=conversation_history
+            )
+            
+            # Extrair a resposta do modelo
+            gpt_response = completion.choices[0].message.content
+            
+            # Limpar o JSON formatado
+            cleaned_json = limpar_json_formatado(gpt_response)
+            
+            print('*'*20)
+            print("3. ANÁLISE GPT (JSON gerado): \n")
+            print(cleaned_json)
+            
+            # Validar o JSON gerado com Guardrails
+            try:
+                validated_json = json_guard.validate(cleaned_json)
+                # validated_json = json_guard.validate(cleaned_json.replace(',','-')) ## Teste de erro para demonstração
+                print('*'*20)
+                print("\nVALIDAÇÃO DO JSON: \n")
+                print(f"{validated_json} \n JSON validado com sucesso! \n")
+                print('*'*20)
+                print(f'Json final: \n{cleaned_json}\n\n')
+                return validated_json
+            except Exception as e:
+                print("\nVALIDAÇÃO DO JSON: \n")
+                print(f"Erro na validação do JSON gerado: {e} \n")                
+                # print(f"Erro na validação do JSON gerado: {e} \n{cleaned_json.replace(',','-')} \n\n") ## Teste de erro para demonstração:
+                return
+            
+        except Exception as e:
+            print('*'*20)
+            print("ANÁLISE GPT: \n")
+            print(f"Ocorreu um erro ao interagir com o modelo: {e}")
+    except Exception as e:
+        print(f"Erro: {e}")
+
+# Executar o script
+if __name__ == "__main__":
+    validar_url_e_resumir()
