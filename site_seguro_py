@@ -43,7 +43,7 @@ def validar_url_e_resumir():
     try:
         # Solicitar ao usuário a URL
         print("\n------- SITE SEGURO -------\n")
-        user_url = input("Por favor, insira uma URL que está sendo analisada para que a OPENAI faça a validação: ")
+        user_url = input("Por favor, insira a URL: ")
         
         # Validar a URL usando Guardrails
         try:
