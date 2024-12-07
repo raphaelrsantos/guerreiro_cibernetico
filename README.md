@@ -19,6 +19,7 @@ Projeto da pós graduação de sistemas e agentes inteligentes da UFG 2024/25
     * Do you wish to use remote inferencing? [Y/n]: n
     * Caso ainda não tenha uma api_key, clique no link sugerido, faça o login, crie e copie a chave API do hub.guardrails;
     * Cole a chave API Key apenas clicando com o botão direito no terminal e dê o enter;
-10. Importe uma biblioteca guardrails desejada: guardrails hub install hub://guardrails/valid_url
-11. Criar o arquivo guerreiro_cibernetico.py e inserir o código python;
-12. Executar o código;
+10. Importe a biblioteca guardrails Valid URL: guardrails hub install hub://guardrails/valid_url
+11. Importe a biblioteca guardrails Valid Json: guardrails hub install hub://guardrails/valid_json
+12. Criar o arquivo python site_seguro.py e inserir o código python;
+13. Executar o código;
